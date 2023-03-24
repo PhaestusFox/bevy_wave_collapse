@@ -71,9 +71,8 @@ impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, 
     }
 }
 
-impl<T: Into<&'static str>> From<T> for Connection {
+impl<T: Into<Cow<'static, str>> + Hash> From<T> for Connection {
     fn from(value: T) -> Self {
-        let str: &'static str = value.into();
-        Connection::new(str)
+        Connection::new(value)
     }
 }

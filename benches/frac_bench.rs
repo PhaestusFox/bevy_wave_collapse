@@ -7,7 +7,7 @@ use hex_plugin::{prelude::*, components::ids::HexRangeIterator};
 use fixed::types::extra::LeEqU32;
 
 fn load_test_wavemesh<P: LeEqU32 + 'static + Send + Sync>() -> RiverObject<FixedI32<P>, u8> {
-    let meshes = wave_collapse::prelude::WaveMesh::<FixedI32<P>, u8>::from_obj_str(include_str!("river.wfo"))
+    let meshes = bevy_wave_collapse::prelude::WaveMesh::<FixedI32<P>, u8>::from_obj_str(include_str!("river.wfo"))
         .unwrap();
     RiverObject { meshes: [
         meshes.get("CORE").unwrap().clone(),
@@ -181,23 +181,9 @@ pub enum ConnectionType {
     CWF,
     CWW
 }
+use bevy_wave_collapse::objects::hexs::HexTrig;
+
 impl<P: fixed::types::extra::LeEqU32 + 'static + Send + Sync, UV: VertexUV + Hash> RiverObject<fixed::FixedI32<P>, UV> {
-    const ROTATIONS_COS: [fixed::FixedI32<P>; 6] = [
-       fixed::FixedI32::<P>::lit("1."),
-       fixed::FixedI32::<P>::lit("0.5"),
-       fixed::FixedI32::<P>::lit("-0.5"),
-       fixed::FixedI32::<P>::lit("-1."),
-       fixed::FixedI32::<P>::lit("-0.5"),
-       fixed::FixedI32::<P>::lit("0.5"),
-    ];
-    const ROTATIONS_SIN: [fixed::FixedI32<P>; 6] = [
-       fixed::FixedI32::<P>::lit("0."),
-       fixed::FixedI32::<P>::lit("0.86602540378"),
-       fixed::FixedI32::<P>::lit("0.86602540378"),
-       fixed::FixedI32::<P>::lit("0."),
-       fixed::FixedI32::<P>::lit("-0.86602540378"),
-       fixed::FixedI32::<P>::lit("-0.86602540378"),
-    ];
     pub fn bake(
         &self,
         offset: RVec3<fixed::FixedI32<P>>,
@@ -208,8 +194,8 @@ impl<P: fixed::types::extra::LeEqU32 + 'static + Send + Sync, UV: VertexUV + Has
         hights.bake(offset, &self.meshes[ConnectionType::Core as usize]).or_else(|e| Err(e.to_string()))?;
         for i in 0..6 {
             let mut stright = self.meshes[if is_water[i] {ConnectionType::SW} else {ConnectionType::SF} as usize].clone();
-            let cos = Self::ROTATIONS_COS[i];
-            let sin = Self::ROTATIONS_SIN[i];
+            let cos = FixedI32::<P>::ROTATIONS_COS[i];
+            let sin = FixedI32::<P>::ROTATIONS_SIN[i];
             stright.rotate(sin, cos);
             hights.bake(offset, &stright).or_else(|e| Err(e.to_string()))?;
             let mut corner = self.meshes[match (is_water[i], is_water[(i + 1) % 6]) {
@@ -218,8 +204,8 @@ impl<P: fixed::types::extra::LeEqU32 + 'static + Send + Sync, UV: VertexUV + Has
                 (true, false) => ConnectionType::CWF,
                 (false, false) => ConnectionType::CFF,
             } as usize].clone();
-            let cos = Self::ROTATIONS_COS[i];
-            let sin = Self::ROTATIONS_SIN[i];
+            let cos = FixedI32::<P>::ROTATIONS_COS[i];
+            let sin = FixedI32::<P>::ROTATIONS_SIN[i];
             corner.rotate(sin, cos);
             hights.bake(offset, &corner).or_else(|e| Err(e.to_string()))?;
             }

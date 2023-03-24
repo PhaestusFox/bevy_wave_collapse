@@ -111,3 +111,10 @@ enum HasConnection {
     Water,
     Sand
 }
+
+impl Into<Cow<'static, str>> for ConnectionType {
+    fn into(self) -> Cow<'static, str> {
+        let str: &'static str = self.into();
+        Cow::Borrowed(str)
+    }
+}
