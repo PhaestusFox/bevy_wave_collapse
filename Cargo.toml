@@ -14,6 +14,7 @@ az = "*"
 thiserror = "*"
 strum = "*"
 strum_macros = "*"
+rand = "*"
 
 [dev-dependencies]
 criterion = {version = "0.4.0", features = ["html_reports"]}
