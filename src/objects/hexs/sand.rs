@@ -10,7 +10,7 @@ use fixed::{types::extra::LeEqU32, FixedI32};
 pub struct Sand;
 
 impl Sand {
-    pub fn new<P: LeEqU32, UV: VertexUV, Id>(
+    pub fn new<P: LeEqU32, UV: VertexUV, Id: Into<u64>>(
         asset_server: &AssetServer,
         path: &str,
     ) -> WaveObject<FixedI32<P>, UV, Id, 6>
@@ -25,7 +25,7 @@ impl Sand {
             can_connect_fn: Sand::can_connect,
         }
     }
-    pub fn bake<P: LeEqU32, UV: VertexUV, Id, const N: usize>(
+    pub fn bake<P: LeEqU32, UV: VertexUV, Id: Into<u64>, const N: usize>(
         obj: &WaveObject<FixedI32<P>, UV, Id, N>,
         offset: RVec3<FixedI32<P>>,
         meshs: &Assets<WaveMesh<FixedI32<P>, UV>>,

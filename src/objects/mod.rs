@@ -53,7 +53,7 @@ impl std::fmt::Debug for Connection {
     }
 }
 
-pub struct WaveObject<P: VertexPosition, UV: VertexUV, Id, const N: usize> {
+pub struct WaveObject<P: VertexPosition, UV: VertexUV, Id: Into<u64>, const N: usize> {
     pub meshes: HashMap<Connection, Handle<WaveMesh<P, UV>>>,
     pub build_fn: fn(
         &WaveObject<P, UV, Id, N>,
@@ -66,7 +66,7 @@ pub struct WaveObject<P: VertexPosition, UV: VertexUV, Id, const N: usize> {
     pub can_connect_fn: fn(Connection) -> bool,
 }
 
-impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, N> {
+impl<P: VertexPosition, UV: VertexUV, Id: Into<u64>, const N: usize> WaveObject<P, UV, Id, N> {
     pub fn build(
         &self,
         offset: RVec3<P>,
@@ -82,7 +82,7 @@ impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, 
     }
 }
 
-impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, N> {
+impl<P: VertexPosition, UV: VertexUV, Id: Into<u64>, const N: usize> WaveObject<P, UV, Id, N> {
     pub fn get<T: Into<&'static str>>(&self, connection: T) -> Option<&Handle<WaveMesh<P, UV>>>
     where
         Connection: From<T>,

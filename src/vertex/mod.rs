@@ -5,8 +5,8 @@ use crate::vector::{RVec3, VecComponent};
 mod impls;
 
 #[derive(PartialEq)]
-pub struct Vertex<POS: VertexPosition, UV: VertexUV> {
-    pub position: RVec3<POS>,
+pub struct Vertex<P: VertexPosition, UV: VertexUV> {
+    pub position: RVec3<P>,
     pub uv: UV,
 }
 

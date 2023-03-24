@@ -35,6 +35,16 @@ impl<P: VertexPosition, UV: VertexUV> WaveMesh<P, UV> {
             vertex.position.z = z;
         }
     }
+    pub fn scale_y(&mut self, by: P) {
+        for vertex in self.vertexs.iter_mut() {
+            vertex.position.y *= by;
+        }
+    }
+    pub fn offset(&mut self, offset: RVec3<P>) {
+        for vertex in self.vertexs.iter_mut() {
+            vertex.position += offset;
+        }
+    }
 }
 
 impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {

@@ -7,7 +7,7 @@ use std::{
 use crate::vertex::VertexPosition;
 
 pub trait VecComponent:
-    Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self> + Clone + Copy + Div
+    Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self> + Clone + Copy + Div + MulAssign + Default + AddAssign
 {
     // // todo make this more then just hex
     // const SIN_LOOKUP: [Self; 6];
@@ -125,7 +125,10 @@ impl<
             + Mul<Output = Self>
             + Div
             + Add<Output = Self>
-            + PartialEq,
+            + PartialEq
+            + MulAssign
+            + Default
+            + AddAssign
     > VecComponent for T
 {
 }
