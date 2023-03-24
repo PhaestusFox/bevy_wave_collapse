@@ -1,8 +1,14 @@
-use std::{ops::{Add, AddAssign, Mul, MulAssign, SubAssign, DivAssign, Div, Sub}, fmt::{Debug, Display}, hash::Hash};
+use std::{
+    fmt::{Debug, Display},
+    hash::Hash,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+};
 
 use crate::vertex::VertexPosition;
 
-pub trait VecComponent: Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self> + Clone + Copy + Div {
+pub trait VecComponent:
+    Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self> + Clone + Copy + Div
+{
     // // todo make this more then just hex
     // const SIN_LOOKUP: [Self; 6];
     // // todo make this more then just hex
@@ -13,30 +19,37 @@ pub trait VecComponent: Add<Output = Self> + Sub<Output = Self> + Mul<Output = S
 pub struct RVec3<T: VecComponent> {
     pub x: T,
     pub y: T,
-    pub z: T
+    pub z: T,
 }
 
-impl<T: VecComponent> RVec3<T>  {
+impl<T: VecComponent> RVec3<T> {
     pub fn new(x: T, y: T, z: T) -> RVec3<T> {
         RVec3 { x, y, z }
     }
 }
 
-impl<T:VecComponent + Debug> Debug for RVec3<T> {
+impl<T: VecComponent + Debug> Debug for RVec3<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("RVec3({:?}, {:?}, {:?})", self.x, self.y, self.z))
+        f.write_fmt(format_args!(
+            "RVec3({:?}, {:?}, {:?})",
+            self.x, self.y, self.z
+        ))
     }
 }
 
-impl<T:VecComponent + Display> Display for RVec3<T> {
+impl<T: VecComponent + Display> Display for RVec3<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("RVec3({}, {}, {})", self.x, self.y, self.z))
     }
 }
 
-impl<T:VecComponent + Default> Default for RVec3<T> {
+impl<T: VecComponent + Default> Default for RVec3<T> {
     fn default() -> Self {
-        RVec3 { x: Default::default(), y: Default::default(), z: Default::default() }
+        RVec3 {
+            x: Default::default(),
+            y: Default::default(),
+            z: Default::default(),
+        }
     }
 }
 
@@ -46,12 +59,12 @@ impl<T: VecComponent> Add for RVec3<T> {
         RVec3 {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
-            z: self.z + rhs.z
+            z: self.z + rhs.z,
         }
     }
 }
 
-impl<T:VecComponent + AddAssign<T>> AddAssign<RVec3<T>> for RVec3<T> {
+impl<T: VecComponent + AddAssign<T>> AddAssign<RVec3<T>> for RVec3<T> {
     fn add_assign(&mut self, rhs: RVec3<T>) {
         self.x += rhs.x;
         self.y += rhs.y;
@@ -75,7 +88,7 @@ impl<T: VecComponent + MulAssign<T>> MulAssign<T> for RVec3<T> {
     }
 }
 
-impl<T: VecComponent + SubAssign<T>> SubAssign for RVec3<T>  {
+impl<T: VecComponent + SubAssign<T>> SubAssign for RVec3<T> {
     fn sub_assign(&mut self, rhs: Self) {
         self.x -= rhs.x;
         self.y -= rhs.y;
@@ -91,7 +104,7 @@ impl<T: VecComponent + DivAssign<T>> DivAssign<T> for RVec3<T> {
     }
 }
 
-impl<T: VecComponent + Hash> Hash for RVec3<T>  {
+impl<T: VecComponent + Hash> Hash for RVec3<T> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.x.hash(state);
         self.y.hash(state);
@@ -101,12 +114,18 @@ impl<T: VecComponent + Hash> Hash for RVec3<T>  {
 
 impl<T: VertexPosition> RVec3<T> {
     pub fn to_f32x3(&self) -> [f32; 3] {
-        [
-            self.x.to_f32(),
-            self.y.to_f32(),
-            self.z.to_f32()
-        ]
+        [self.x.to_f32(), self.y.to_f32(), self.z.to_f32()]
     }
 }
 
-impl<T: Clone + Copy + Sub<Output = Self> + Mul<Output = Self> + Div + Add<Output = Self> + PartialEq> VecComponent for T {}
+impl<
+        T: Clone
+            + Copy
+            + Sub<Output = Self>
+            + Mul<Output = Self>
+            + Div
+            + Add<Output = Self>
+            + PartialEq,
+    > VecComponent for T
+{
+}

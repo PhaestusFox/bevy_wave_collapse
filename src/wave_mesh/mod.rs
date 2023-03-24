@@ -1,13 +1,17 @@
-use std::{hash::Hash};
+use std::hash::Hash;
 
-use crate::{vertex::{Vertex, VertexPosition, VertexUV}, vector::RVec3, errors::{BakeError, ParseObjError}};
+use crate::{
+    errors::{BakeError, ParseObjError},
+    vector::RVec3,
+    vertex::{Vertex, VertexPosition, VertexUV},
+};
 
-#[cfg(feature="bevy")]
+#[cfg(feature = "bevy")]
 pub(crate) mod loader;
 
-// use bevy::utils::HashMap;
-use std::collections::HashMap;
-#[cfg(feature="bevy")]
+use bevy::utils::HashMap; //30% faster the std
+                          // use std::collections::HashMap;
+#[cfg(feature = "bevy")]
 use uuid::uuid;
 
 #[derive(Clone)]
@@ -18,7 +22,10 @@ pub struct WaveMesh<P: VertexPosition, UV: VertexUV> {
 
 impl<P: VertexPosition, UV: VertexUV> WaveMesh<P, UV> {
     pub fn new() -> WaveMesh<P, UV> {
-        WaveMesh { vertexs: Vec::new(), indices: Vec::new() }
+        WaveMesh {
+            vertexs: Vec::new(),
+            indices: Vec::new(),
+        }
     }
     pub fn rotate(&mut self, sin: P, cos: P) {
         for mut vertex in self.vertexs.iter_mut() {
@@ -49,18 +56,27 @@ impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
                 "usemtl" => {
                     current_color = words
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol {expect: "Color", line: num})?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Color",
+                            line: num,
+                        })?
                         .parse()
                         .or_else(|e| Err(ParseObjError::FailedToParseInt(e, num)))?;
                 }
                 "f" => {
                     let mut f0 = words
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol {expect: "Face Index 0", line: num})?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Face Index 0",
+                            line: num,
+                        })?
                         .split('/');
                     let f0_0 = f0
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol {expect: "Face Vertex 0", line: num})?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Face Vertex 0",
+                            line: num,
+                        })?
                         .parse::<usize>()
                         .or_else(|e| Err(ParseObjError::FailedToParseInt(e, num)))?
                         - 1;
@@ -68,11 +84,17 @@ impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
                     //let f0_2 = f0.next().ok_or(ParseObjError::NoPoint(2, num))?.parse::<usize>().or_else(|e| Err(ParseObjError::Int(e, num)))?;
                     let mut f1 = words
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol {expect: "Face Index 1", line: num})?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Face Index 1",
+                            line: num,
+                        })?
                         .split('/');
                     let f1_0 = f1
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol {expect: "Face Vertex 1", line: num})?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Face Vertex 1",
+                            line: num,
+                        })?
                         .parse::<usize>()
                         .or_else(|e| Err(ParseObjError::FailedToParseInt(e, num)))?
                         - 1;
@@ -81,31 +103,46 @@ impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
 
                     let mut f2 = words
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol {expect: "Face Index 2", line: num})?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Face Index 2",
+                            line: num,
+                        })?
                         .split('/');
                     let f2_0 = f2
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol {expect: "Face Vertex 2", line: num})?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Face Vertex 2",
+                            line: num,
+                        })?
                         .parse::<usize>()
                         .or_else(|e| Err(ParseObjError::FailedToParseInt(e, num)))?
                         - 1;
                     //let f2_1 = f2.next().ok_or(ParseObjError::NoPoint(1, num))?.parse::<usize>().or_else(|e| Err(ParseObjError::Int(e, num)))?;
                     //let f2_2 = f2.next().ok_or(ParseObjError::NoPoint(2, num))?.parse::<usize>().or_else(|e| Err(ParseObjError::Int(e, num)))?;
-                    let vertex = Vertex{ position: points[f0_0], uv: current_color};
+                    let vertex = Vertex {
+                        position: points[f0_0],
+                        uv: current_color,
+                    };
                     let id = *vertex_map.entry(vertex).or_insert_with(|| {
                         let id = current_mesh.vertexs.len() as u32;
                         current_mesh.vertexs.push(vertex);
                         id
                     });
                     current_mesh.indices.push(id);
-                    let vertex = Vertex{ position: points[f1_0], uv: current_color};
+                    let vertex = Vertex {
+                        position: points[f1_0],
+                        uv: current_color,
+                    };
                     let id = *vertex_map.entry(vertex).or_insert_with(|| {
                         let id = current_mesh.vertexs.len() as u32;
                         current_mesh.vertexs.push(vertex);
                         id
                     });
                     current_mesh.indices.push(id);
-                    let vertex = Vertex{ position: points[f2_0], uv: current_color};
+                    let vertex = Vertex {
+                        position: points[f2_0],
+                        uv: current_color,
+                    };
                     let id = *vertex_map.entry(vertex).or_insert_with(|| {
                         let id = current_mesh.vertexs.len() as u32;
                         current_mesh.vertexs.push(vertex);
@@ -116,19 +153,28 @@ impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
                 "v" => {
                     let x = words
                         .next()
-                        .ok_or(ParseObjError::ExpectedSymbol { expect: "Vertex x", line: num })?
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Vertex x",
+                            line: num,
+                        })?
                         .parse::<P>()
                         .or_else(|_| Err(ParseObjError::FailedToParse("Vertex x", num)))?;
                     let y = words
-                    .next()
-                    .ok_or(ParseObjError::ExpectedSymbol { expect: "Vertex y", line: num })?
-                    .parse::<P>()
-                    .or_else(|_| Err(ParseObjError::FailedToParse("Vertex y", num)))?;
-                let z = words
-                .next()
-                .ok_or(ParseObjError::ExpectedSymbol { expect: "Vertex z", line: num })?
-                .parse::<P>()
-                .or_else(|_| Err(ParseObjError::FailedToParse("Vertex z", num)))?;
+                        .next()
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Vertex y",
+                            line: num,
+                        })?
+                        .parse::<P>()
+                        .or_else(|_| Err(ParseObjError::FailedToParse("Vertex y", num)))?;
+                    let z = words
+                        .next()
+                        .ok_or(ParseObjError::ExpectedSymbol {
+                            expect: "Vertex z",
+                            line: num,
+                        })?
+                        .parse::<P>()
+                        .or_else(|_| Err(ParseObjError::FailedToParse("Vertex z", num)))?;
                     points.push(RVec3::new(x, y, z));
                 }
                 "o" => {
@@ -138,10 +184,7 @@ impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
                         first = false;
                     }
                     current_mesh = WaveMesh::new();
-                    current_name = words
-                        .next()
-                        .ok_or(ParseObjError::NoName(num))?
-                        .to_string();
+                    current_name = words.next().ok_or(ParseObjError::NoName(num))?.to_string();
                     vertex_map.clear();
                 }
                 w => {
@@ -160,7 +203,7 @@ impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
     }
 }
 
-#[cfg(feature="bevy")]
+#[cfg(feature = "bevy")]
 impl<T: VertexPosition, UV: VertexUV> bevy::reflect::TypeUuid for WaveMesh<T, UV> {
     const TYPE_UUID: bevy::utils::Uuid = uuid!("c222c5a0-c488-4642-923d-d9b6eda4b7d3");
 }
@@ -168,7 +211,7 @@ impl<T: VertexPosition, UV: VertexUV> bevy::reflect::TypeUuid for WaveMesh<T, UV
 pub struct WaveBuilder<P: VertexPosition, UV: VertexUV> {
     vertexs: Vec<Vertex<P, UV>>,
     indices: Vec<u32>,
-    map: HashMap<Vertex<P, UV>, u32>
+    map: HashMap<Vertex<P, UV>, u32>,
 }
 
 impl<P: VertexPosition, UV: VertexUV + Hash> WaveBuilder<P, UV> {
@@ -177,33 +220,40 @@ impl<P: VertexPosition, UV: VertexUV + Hash> WaveBuilder<P, UV> {
     /// Use this to add compleate structeres to a mesh such as rocks or trees
     pub fn add(&mut self, offset: RVec3<P>, mesh: &WaveMesh<P, UV>) -> Result<(), BakeError> {
         let indices_offset = self.vertexs.len() as u32;
-        self.vertexs.extend(mesh.vertexs.iter().map(|v| Vertex::new(v.position + offset, v.uv)));
-        self.indices.extend(mesh.indices.iter().map(|i| *i + indices_offset));
+        self.vertexs.extend(
+            mesh.vertexs
+                .iter()
+                .map(|v| Vertex::new(v.position + offset, v.uv)),
+        );
+        self.indices
+            .extend(mesh.indices.iter().map(|i| *i + indices_offset));
         Ok(())
     }
 
     /// Bake a wavemesh into the main mesh combining any duplicate vertexes along the way
     /// Use this to add partuals structure or connections to the mesh such as walls or cells
-    pub fn bake(&mut self,
-        offset: RVec3<P>,
-        mesh: &WaveMesh<P, UV>)
-        -> Result<(), BakeError> {
-            let mut vertexs = Vec::with_capacity(mesh.vertexs.len());
-            vertexs.extend(mesh.vertexs.iter().map(|vertex| {
-                let point = vertex.position + offset;
-                let vertex = Vertex::new(point, vertex.uv);
-                *self.map.entry(vertex).or_insert_with(|| {
-                    let id = self.vertexs.len() as u32;
-                    self.vertexs.push(vertex);
-                    id
-                })
-            }));
-            self.indices.extend(mesh.indices.iter().map(|i| vertexs[*i as usize]));
-            Ok(())
-        }
+    pub fn bake(&mut self, offset: RVec3<P>, mesh: &WaveMesh<P, UV>) -> Result<(), BakeError> {
+        let mut vertexs = Vec::with_capacity(mesh.vertexs.len());
+        vertexs.extend(mesh.vertexs.iter().map(|vertex| {
+            let point = vertex.position + offset;
+            let vertex = Vertex::new(point, vertex.uv);
+            *self.map.entry(vertex).or_insert_with(|| {
+                let id = self.vertexs.len() as u32;
+                self.vertexs.push(vertex);
+                id
+            })
+        }));
+        self.indices
+            .extend(mesh.indices.iter().map(|i| vertexs[*i as usize]));
+        Ok(())
+    }
 
     pub fn new() -> WaveBuilder<P, UV> {
-        WaveBuilder { vertexs: Vec::new(), indices: Vec::new(), map: HashMap::new() }
+        WaveBuilder {
+            vertexs: Vec::new(),
+            indices: Vec::new(),
+            map: HashMap::new(),
+        }
     }
 
     pub fn clear(&mut self) {
@@ -215,15 +265,18 @@ impl<P: VertexPosition, UV: VertexUV + Hash> WaveBuilder<P, UV> {
     pub fn extract(&self) -> (Vec<[f32; 3]>, Vec<[f32; 2]>, Vec<u32>) {
         let mut vertexs = Vec::with_capacity(self.vertexs.len());
         let mut uvs = Vec::with_capacity(self.vertexs.len());
-        for Vertex{position, uv} in self.vertexs.iter() {
+        for Vertex { position, uv } in self.vertexs.iter() {
             vertexs.push(position.to_f32x3());
             uvs.push(uv.to_f32x2());
         }
         (vertexs, uvs, self.indices.clone())
     }
 
-    #[cfg(feature="with_bevy")]
-    pub fn extract_mesh(&self, topology: bevy::render::render_resource::PrimitiveTopology) -> bevy::prelude::Mesh {
+    #[cfg(feature = "with_bevy")]
+    pub fn extract_mesh(
+        &self,
+        topology: bevy::render::render_resource::PrimitiveTopology,
+    ) -> bevy::prelude::Mesh {
         use bevy::prelude::Mesh;
         let mut mesh = Mesh::new(topology);
         let (vertexs, uvs, indices) = self.extract();
@@ -236,7 +289,7 @@ impl<P: VertexPosition, UV: VertexUV + Hash> WaveBuilder<P, UV> {
     pub fn vertex_len(&self) -> usize {
         self.vertexs.len()
     }
-    
+
     pub fn indices_len(&self) -> usize {
         self.indices.len()
     }

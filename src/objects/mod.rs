@@ -1,6 +1,10 @@
-use std::{borrow::Cow, hash::{Hash, Hasher}, collections::HashMap};
 use crate::prelude::*;
 use bevy::prelude::*;
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+    hash::{Hash, Hasher},
+};
 pub mod hexs;
 use crate::errors::BakeError;
 
@@ -16,7 +20,7 @@ impl Connection {
         id.hash(&mut hasher);
         Connection {
             name: id.into(),
-            hash: hasher.finish()
+            hash: hasher.finish(),
         }
     }
 
@@ -51,12 +55,26 @@ impl std::fmt::Debug for Connection {
 
 pub struct WaveObject<P: VertexPosition, UV: VertexUV, Id, const N: usize> {
     pub meshes: HashMap<Connection, Handle<WaveMesh<P, UV>>>,
-    pub build_fn: fn(&WaveObject<P, UV, Id, N>, RVec3<P>, &Assets<WaveMesh<P, UV>>, &mut WaveBuilder<P, UV>, [&WaveObject<P, UV, Id, N>; N],Id) -> Result<(), BakeError>,
+    pub build_fn: fn(
+        &WaveObject<P, UV, Id, N>,
+        RVec3<P>,
+        &Assets<WaveMesh<P, UV>>,
+        &mut WaveBuilder<P, UV>,
+        [&WaveObject<P, UV, Id, N>; N],
+        Id,
+    ) -> Result<(), BakeError>,
     pub can_connect_fn: fn(Connection) -> bool,
 }
 
 impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, N> {
-    pub fn build(&self, offset: RVec3<P>, meshs: &Assets<WaveMesh<P, UV>>, main_mesh: &mut WaveBuilder<P, UV>, neighbours: [&WaveObject<P, UV, Id, N>; N],id: Id) -> Result<(), BakeError> {
+    pub fn build(
+        &self,
+        offset: RVec3<P>,
+        meshs: &Assets<WaveMesh<P, UV>>,
+        main_mesh: &mut WaveBuilder<P, UV>,
+        neighbours: [&WaveObject<P, UV, Id, N>; N],
+        id: Id,
+    ) -> Result<(), BakeError> {
         (self.build_fn)(self, offset, meshs, main_mesh, neighbours, id)
     }
     pub fn can_connect(&self, connection: Connection) -> bool {
@@ -64,9 +82,11 @@ impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, 
     }
 }
 
-impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, N>
-{
-    pub fn get<T: Into<&'static str>>(&self, connection: T) -> Option<&Handle<WaveMesh<P, UV>>> where Connection: From<T> {
+impl<P: VertexPosition, UV: VertexUV, Id, const N: usize> WaveObject<P, UV, Id, N> {
+    pub fn get<T: Into<&'static str>>(&self, connection: T) -> Option<&Handle<WaveMesh<P, UV>>>
+    where
+        Connection: From<T>,
+    {
         self.meshes.get(&Connection::from(connection))
     }
 }

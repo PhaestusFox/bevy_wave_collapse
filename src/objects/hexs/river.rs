@@ -1,18 +1,26 @@
-use std::{path::PathBuf};
-use super::*;
 use super::super::*;
-use crate::{wave_mesh::{WaveMesh, WaveBuilder}, vertex::{VertexPosition, VertexUV}, prelude::RVec3, errors::BakeError};
-use strum_macros::{IntoStaticStr, EnumIter};
+use super::*;
+use crate::{
+    errors::BakeError,
+    prelude::RVec3,
+    vertex::{VertexPosition, VertexUV},
+    wave_mesh::{WaveBuilder, WaveMesh},
+};
+use std::path::PathBuf;
 use strum::IntoEnumIterator;
+use strum_macros::{EnumIter, IntoStaticStr};
 
 pub struct RiverObject;
 
-
 use bevy::asset::AssetPath;
-use fixed::{FixedI32, types::extra::LeEqU32};
+use fixed::{types::extra::LeEqU32, FixedI32};
 impl RiverObject {
-    pub fn new<P: LeEqU32, UV: VertexUV, Id>(asset_server: &AssetServer, path: &str) -> WaveObject<FixedI32::<P>, UV, Id, 6>
-    where FixedI32::<P>: VertexPosition
+    pub fn new<P: LeEqU32, UV: VertexUV, Id>(
+        asset_server: &AssetServer,
+        path: &str,
+    ) -> WaveObject<FixedI32<P>, UV, Id, 6>
+    where
+        FixedI32<P>: VertexPosition,
     {
         use ConnectionType::*;
         let mut meshes = HashMap::new();
@@ -23,7 +31,7 @@ impl RiverObject {
                 Core => {
                     let path = AssetPath::new(base_path.clone(), None);
                     meshes.insert(Connection::from(Core), asset_server.load(path));
-                },
+                }
                 not_core => {
                     let name: &'static str = not_core.into();
                     let path = AssetPath::new(base_path.clone(), Some(format!("{}", name)));
@@ -31,18 +39,34 @@ impl RiverObject {
                 }
             }
         }
-        WaveObject::<FixedI32::<P>, UV, Id, 6> {
+        WaveObject::<FixedI32<P>, UV, Id, 6> {
             meshes,
             can_connect_fn: RiverObject::can_connect,
-            build_fn: RiverObject::bake
+            build_fn: RiverObject::bake,
         }
     }
-    pub fn bake<P: LeEqU32, UV: VertexUV, Id, const N: usize>(obj: &WaveObject<FixedI32::<P>, UV, Id, N>, offset: RVec3<FixedI32::<P>>, meshs: &Assets<WaveMesh<FixedI32::<P>, UV>>, main_mesh: &mut WaveBuilder<FixedI32::<P>, UV>, neighbours: [&WaveObject<FixedI32::<P>, UV, Id, N>; N], _id: Id) -> Result<(), BakeError>
-    where FixedI32::<P>: VertexPosition
+    pub fn bake<P: LeEqU32, UV: VertexUV, Id, const N: usize>(
+        obj: &WaveObject<FixedI32<P>, UV, Id, N>,
+        offset: RVec3<FixedI32<P>>,
+        meshs: &Assets<WaveMesh<FixedI32<P>, UV>>,
+        main_mesh: &mut WaveBuilder<FixedI32<P>, UV>,
+        neighbours: [&WaveObject<FixedI32<P>, UV, Id, N>; N],
+        _id: Id,
+    ) -> Result<(), BakeError>
+    where
+        FixedI32<P>: VertexPosition,
     {
         use ConnectionType::*;
         use HasConnection::*;
-        main_mesh.bake(offset, meshs.get(obj.get(Core).ok_or(BakeError::MeshNotSet("Core", "River"))?).ok_or(BakeError::MeshNotFound("River Core"))?)?;
+        main_mesh.bake(
+            offset,
+            meshs
+                .get(
+                    obj.get(Core)
+                        .ok_or(BakeError::MeshNotSet("Core", "River"))?,
+                )
+                .ok_or(BakeError::MeshNotFound("River Core"))?,
+        )?;
         let water_connection = Connection::new("Water");
         let sand_connection = Connection::new("Sand");
         let mut has_connection = [Flat; 6];
@@ -55,32 +79,62 @@ impl RiverObject {
         }
         for i in 0..6 {
             let stright = match has_connection[i] {
-                Water => obj.get(SW).ok_or(BakeError::MeshNotSet("Stright Water", "River"))?,
-                Flat => obj.get(SF).ok_or(BakeError::MeshNotSet("Stright Flat", "River"))?,
-                Sand => obj.get(SS).ok_or(BakeError::MeshNotSet("Stright Sand", "River"))?
+                Water => obj
+                    .get(SW)
+                    .ok_or(BakeError::MeshNotSet("Stright Water", "River"))?,
+                Flat => obj
+                    .get(SF)
+                    .ok_or(BakeError::MeshNotSet("Stright Flat", "River"))?,
+                Sand => obj
+                    .get(SS)
+                    .ok_or(BakeError::MeshNotSet("Stright Sand", "River"))?,
             };
-            let mut stright = meshs.get(stright).ok_or(BakeError::MeshNotFound("Stright"))?.clone();
+            let mut stright = meshs
+                .get(stright)
+                .ok_or(BakeError::MeshNotFound("Stright"))?
+                .clone();
             let cos = FixedI32::<P>::ROTATIONS_COS[i];
             let sin = FixedI32::<P>::ROTATIONS_SIN[i];
             stright.rotate(sin, cos);
             main_mesh.bake(offset, &stright)?;
             let corner = match (has_connection[i], has_connection[(i + 1) % 6]) {
-                (Water, Water) => obj.get(CWW).ok_or(  BakeError::MeshNotSet("Corner Water Water", "River"))?,
-                (Water, Flat) => obj.get(CWF).ok_or( BakeError::MeshNotSet("Corner Water Flat", "River"))?,
-                (Flat, Water) => obj.get(CFW).ok_or( BakeError::MeshNotSet("Corner Flat Water", "River"))?,
-                (Flat, Flat) => obj.get(CFF).ok_or(BakeError::MeshNotSet("Corner Flat Flat", "River"))?,
-                (Flat, Sand) => obj.get(CFS).ok_or(BakeError::MeshNotSet("Corner Flat Sand", "River"))?,
-                (Water, Sand) => obj.get(CWS).ok_or(BakeError::MeshNotSet("Corner Water Sand", "River"))?,
-                (Sand,  Flat) => obj.get(CSF).ok_or(BakeError::MeshNotSet("Corner Sand Flat", "River"))?,
-                (Sand, Water) => obj.get(CSW).ok_or(BakeError::MeshNotSet("Corner Sand Water", "River"))?,
-                (Sand,  Sand) => obj.get(CSS).ok_or(BakeError::MeshNotSet("Corner Sand Sand", "River"))?,
+                (Water, Water) => obj
+                    .get(CWW)
+                    .ok_or(BakeError::MeshNotSet("Corner Water Water", "River"))?,
+                (Water, Flat) => obj
+                    .get(CWF)
+                    .ok_or(BakeError::MeshNotSet("Corner Water Flat", "River"))?,
+                (Flat, Water) => obj
+                    .get(CFW)
+                    .ok_or(BakeError::MeshNotSet("Corner Flat Water", "River"))?,
+                (Flat, Flat) => obj
+                    .get(CFF)
+                    .ok_or(BakeError::MeshNotSet("Corner Flat Flat", "River"))?,
+                (Flat, Sand) => obj
+                    .get(CFS)
+                    .ok_or(BakeError::MeshNotSet("Corner Flat Sand", "River"))?,
+                (Water, Sand) => obj
+                    .get(CWS)
+                    .ok_or(BakeError::MeshNotSet("Corner Water Sand", "River"))?,
+                (Sand, Flat) => obj
+                    .get(CSF)
+                    .ok_or(BakeError::MeshNotSet("Corner Sand Flat", "River"))?,
+                (Sand, Water) => obj
+                    .get(CSW)
+                    .ok_or(BakeError::MeshNotSet("Corner Sand Water", "River"))?,
+                (Sand, Sand) => obj
+                    .get(CSS)
+                    .ok_or(BakeError::MeshNotSet("Corner Sand Sand", "River"))?,
             };
-            let mut corner = meshs.get(corner).ok_or(BakeError::MeshNotFound("Stright"))?.clone();
+            let mut corner = meshs
+                .get(corner)
+                .ok_or(BakeError::MeshNotFound("Stright"))?
+                .clone();
             let cos = FixedI32::<P>::ROTATIONS_COS[i];
             let sin = FixedI32::<P>::ROTATIONS_SIN[i];
             corner.rotate(sin, cos);
             main_mesh.bake(offset, &corner)?;
-            }
+        }
         Ok(())
     }
     pub fn can_connect(connection: Connection) -> bool {
@@ -109,7 +163,7 @@ pub enum ConnectionType {
 enum HasConnection {
     Flat,
     Water,
-    Sand
+    Sand,
 }
 
 impl Into<Cow<'static, str>> for ConnectionType {

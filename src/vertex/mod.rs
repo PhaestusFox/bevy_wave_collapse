@@ -5,8 +5,7 @@ use crate::vector::{RVec3, VecComponent};
 mod impls;
 
 #[derive(PartialEq)]
-pub struct Vertex<POS: VertexPosition, UV: VertexUV>
-{
+pub struct Vertex<POS: VertexPosition, UV: VertexUV> {
     pub position: RVec3<POS>,
     pub uv: UV,
 }
@@ -30,7 +29,7 @@ pub trait VertexPosition: 'static + VecComponent + PartialEq + Hash + Send + Syn
 }
 
 pub trait VertexUV: 'static + Copy + PartialEq + Hash + Send + Sync {
-    fn to_f32x2(&self) -> [f32;2];
+    fn to_f32x2(&self) -> [f32; 2];
 }
 
 impl<P: VertexPosition, UV: VertexUV + Hash> Hash for Vertex<P, UV> {

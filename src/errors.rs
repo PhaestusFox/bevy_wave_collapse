@@ -19,13 +19,11 @@ pub enum ParseObjError {
     #[error("Found Unknown Simble {0} on line {1}")]
     UnknownSymbol(String, usize),
     #[error("Expected {expect} Symbol on line {line}")]
-    ExpectedSymbol{
-        expect: &'static str,
-        line: usize },
+    ExpectedSymbol { expect: &'static str, line: usize },
     #[error("Failed to Parse Int on line {1}")]
     FailedToParseInt(core::num::ParseIntError, usize),
     #[error("Failed to Parse Float on line {1}")]
     FailedToParseFloat(core::num::ParseFloatError, usize),
     #[error("Failed to Parse {0} on line {1}")]
-    FailedToParse(&'static str, usize)
+    FailedToParse(&'static str, usize),
 }

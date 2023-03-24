@@ -4,8 +4,11 @@ pub use trig::*;
 
 use super::*;
 
-mod trig { 
-    use fixed::{FixedI32, FixedI64, types::extra::{LeEqU32, LeEqU64}};
+mod trig {
+    use fixed::{
+        types::extra::{LeEqU32, LeEqU64},
+        FixedI32, FixedI64,
+    };
 
     pub trait HexTrig: Sized {
         const ROTATIONS_COS: [Self; 6];
@@ -29,7 +32,7 @@ mod trig {
             FixedI32::<P>::lit("-0.86602540378"),
         ];
     }
-    
+
     impl<P: LeEqU64> HexTrig for FixedI64<P> {
         const ROTATIONS_COS: [FixedI64<P>; 6] = [
             FixedI64::<P>::lit("1."),
