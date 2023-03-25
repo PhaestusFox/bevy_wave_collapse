@@ -15,10 +15,10 @@ pub struct RiverObject;
 use bevy::asset::AssetPath;
 use fixed::{types::extra::LeEqU32, FixedI32};
 impl RiverObject {
-    pub fn new<P: LeEqU32, UV: VertexUV, Id: Into<u64>>(
+    pub fn new<P: LeEqU32, UV: VertexUV, Seed: Into<u64>>(
         asset_server: &AssetServer,
         path: &str,
-    ) -> WaveObject<FixedI32<P>, UV, Id, 6>
+    ) -> WaveObject<FixedI32<P>, UV, Seed, 6>
     where
         FixedI32<P>: VertexPosition,
     {
@@ -39,19 +39,19 @@ impl RiverObject {
                 }
             }
         }
-        WaveObject::<FixedI32<P>, UV, Id, 6> {
+        WaveObject::<FixedI32<P>, UV, Seed, 6> {
             meshes,
             can_connect_fn: RiverObject::can_connect,
             build_fn: RiverObject::bake,
         }
     }
-    pub fn bake<P: LeEqU32, UV: VertexUV, Id: Into<u64>, const N: usize>(
-        obj: &WaveObject<FixedI32<P>, UV, Id, N>,
+    pub fn bake<P: LeEqU32, UV: VertexUV, Seed: Into<u64>, const N: usize>(
+        obj: &WaveObject<FixedI32<P>, UV, Seed, N>,
         offset: RVec3<FixedI32<P>>,
         meshs: &Assets<WaveMesh<FixedI32<P>, UV>>,
         main_mesh: &mut WaveBuilder<FixedI32<P>, UV>,
-        neighbours: [&WaveObject<FixedI32<P>, UV, Id, N>; N],
-        _id: Id,
+        neighbours: [&WaveObject<FixedI32<P>, UV, Seed, N>; N],
+        _id: Seed,
     ) -> Result<(), BakeError>
     where
         FixedI32<P>: VertexPosition,

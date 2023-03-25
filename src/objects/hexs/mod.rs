@@ -1,6 +1,6 @@
+pub mod desert;
 pub mod river;
 pub mod sand;
-pub mod desert;
 pub use trig::*;
 
 use super::*;

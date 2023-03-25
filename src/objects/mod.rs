@@ -53,36 +53,36 @@ impl std::fmt::Debug for Connection {
     }
 }
 
-pub struct WaveObject<P: VertexPosition, UV: VertexUV, Id: Into<u64>, const N: usize> {
+pub struct WaveObject<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize> {
     pub meshes: HashMap<Connection, Handle<WaveMesh<P, UV>>>,
     pub build_fn: fn(
-        &WaveObject<P, UV, Id, N>,
+        &WaveObject<P, UV, Seed, N>,
         RVec3<P>,
         &Assets<WaveMesh<P, UV>>,
         &mut WaveBuilder<P, UV>,
-        [&WaveObject<P, UV, Id, N>; N],
-        Id,
+        [&WaveObject<P, UV, Seed, N>; N],
+        Seed,
     ) -> Result<(), BakeError>,
     pub can_connect_fn: fn(Connection) -> bool,
 }
 
-impl<P: VertexPosition, UV: VertexUV, Id: Into<u64>, const N: usize> WaveObject<P, UV, Id, N> {
+impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize> WaveObject<P, UV, Seed, N> {
     pub fn build(
         &self,
         offset: RVec3<P>,
         meshs: &Assets<WaveMesh<P, UV>>,
         main_mesh: &mut WaveBuilder<P, UV>,
-        neighbours: [&WaveObject<P, UV, Id, N>; N],
-        id: Id,
+        neighbours: [&WaveObject<P, UV, Seed, N>; N],
+        seed: Seed,
     ) -> Result<(), BakeError> {
-        (self.build_fn)(self, offset, meshs, main_mesh, neighbours, id)
+        (self.build_fn)(self, offset, meshs, main_mesh, neighbours, seed)
     }
     pub fn can_connect(&self, connection: Connection) -> bool {
         (self.can_connect_fn)(connection)
     }
 }
 
-impl<P: VertexPosition, UV: VertexUV, Id: Into<u64>, const N: usize> WaveObject<P, UV, Id, N> {
+impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize> WaveObject<P, UV, Seed, N> {
     pub fn get<T: Into<&'static str>>(&self, connection: T) -> Option<&Handle<WaveMesh<P, UV>>>
     where
         Connection: From<T>,

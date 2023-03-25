@@ -7,7 +7,15 @@ use std::{
 use crate::vertex::VertexPosition;
 
 pub trait VecComponent:
-    Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self> + Clone + Copy + Div + MulAssign + Default + AddAssign
+    Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Clone
+    + Copy
+    + Div
+    + MulAssign
+    + Default
+    + AddAssign
 {
     // // todo make this more then just hex
     // const SIN_LOOKUP: [Self; 6];
@@ -25,6 +33,13 @@ pub struct RVec3<T: VecComponent> {
 impl<T: VecComponent> RVec3<T> {
     pub fn new(x: T, y: T, z: T) -> RVec3<T> {
         RVec3 { x, y, z }
+    }
+
+    pub fn rotate_y(&mut self, sin: T, cos: T) {
+        let x = self.x * cos - self.z * sin;
+        let z = self.z * cos + self.x * sin;
+        self.x = x;
+        self.z = z;
     }
 }
 
@@ -128,7 +143,7 @@ impl<
             + PartialEq
             + MulAssign
             + Default
-            + AddAssign
+            + AddAssign,
     > VecComponent for T
 {
 }
