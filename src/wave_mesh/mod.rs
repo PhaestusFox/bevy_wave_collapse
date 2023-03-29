@@ -9,8 +9,9 @@ use crate::{
 #[cfg(feature = "bevy")]
 pub(crate) mod loader;
 
-use bevy::utils::HashMap; //30% faster the std
-                          // use std::collections::HashMap;
+#[cfg(feature = "bevy")]
+use bevy::utils::HashMap; //30% faster then std
+
 #[cfg(feature = "bevy")]
 use uuid::uuid;
 
@@ -262,7 +263,7 @@ impl<P: VertexPosition, UV: VertexUV + Hash> WaveBuilder<P, UV> {
         WaveBuilder {
             vertexs: Vec::new(),
             indices: Vec::new(),
-            map: HashMap::new(),
+            map: HashMap::default(),
         }
     }
 
