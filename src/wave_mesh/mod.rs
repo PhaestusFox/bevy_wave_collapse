@@ -48,11 +48,11 @@ impl<P: VertexPosition, UV: VertexUV> WaveMesh<P, UV> {
     }
 }
 
-impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
-    pub fn from_obj_str(str: &str) -> Result<HashMap<String, WaveMesh<P, u8>>, ParseObjError> {
+impl<P: VertexPosition + std::str::FromStr, UV: VertexUV + std::str::FromStr + Default> WaveMesh<P, UV> {
+    pub fn from_obj_str(str: &str) -> Result<HashMap<String, WaveMesh<P, UV>>, ParseObjError> {
         let mut meshs = HashMap::new();
         let mut current_mesh = WaveMesh::new();
-        let mut current_color: u8 = 0;
+        let mut current_color = UV::default();
         let mut current_name = String::new();
         let mut first = true;
         let mut points = Vec::new();
@@ -72,7 +72,7 @@ impl<P: VertexPosition + std::str::FromStr> WaveMesh<P, u8> {
                             line: num,
                         })?
                         .parse()
-                        .or_else(|e| Err(ParseObjError::FailedToParseInt(e, num)))?;
+                        .or_else(|_| Err(ParseObjError::FailedToParse("failed to parse usemtl", num)))?;
                 }
                 "f" => {
                     let mut f0 = words
