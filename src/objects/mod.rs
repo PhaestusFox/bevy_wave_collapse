@@ -5,7 +5,7 @@ use std::{
     collections::HashMap,
     hash::{Hash, Hasher},
 };
-pub mod hexs;
+pub mod hexs_map;
 use crate::errors::BakeError;
 
 #[derive(Clone)]
@@ -53,26 +53,28 @@ impl std::fmt::Debug for Connection {
     }
 }
 
-pub struct WaveObject<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize> {
+pub struct WaveObjects<'a, P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize>(pub [&'a WaveObject<P, UV, Seed, Self>; N]);
+
+pub struct WaveObject<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> {
     pub meshes: HashMap<Connection, Handle<WaveMesh<P, UV>>>,
     pub build_fn: fn(
-        &WaveObject<P, UV, Seed, N>,
+        &WaveObject<P, UV, Seed, DATA>,
         RVec3<P>,
         &Assets<WaveMesh<P, UV>>,
         &mut WaveBuilder<P, UV>,
-        [&WaveObject<P, UV, Seed, N>; N],
+        &DATA,
         Seed,
     ) -> Result<(), BakeError>,
     pub can_connect_fn: fn(Connection) -> bool,
 }
 
-impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize> WaveObject<P, UV, Seed, N> {
+impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> WaveObject<P, UV, Seed, DATA> {
     pub fn build(
         &self,
         offset: RVec3<P>,
         meshs: &Assets<WaveMesh<P, UV>>,
         main_mesh: &mut WaveBuilder<P, UV>,
-        neighbours: [&WaveObject<P, UV, Seed, N>; N],
+        neighbours: &DATA,
         seed: Seed,
     ) -> Result<(), BakeError> {
         (self.build_fn)(self, offset, meshs, main_mesh, neighbours, seed)
@@ -82,7 +84,7 @@ impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize> WaveObjec
     }
 }
 
-impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize> WaveObject<P, UV, Seed, N> {
+impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> WaveObject<P, UV, Seed, DATA> {
     pub fn get<T: Into<&'static str>>(&self, connection: T) -> Option<&Handle<WaveMesh<P, UV>>>
     where
         Connection: From<T>,

@@ -10,10 +10,10 @@ use fixed::{types::extra::LeEqU32, FixedI32};
 pub struct Sand;
 
 impl Sand {
-    pub fn new<P: LeEqU32, UV: VertexUV, Seed: Into<u64>>(
+    pub fn new<'a, P: LeEqU32, UV: VertexUV, Seed: Into<u64>, Data>(
         asset_server: &AssetServer,
         path: &str,
-    ) -> WaveObject<FixedI32<P>, UV, Seed, 6>
+    ) -> WaveObject<FixedI32<P>, UV, Seed, Data>
     where
         FixedI32<P>: VertexPosition,
     {
@@ -25,12 +25,12 @@ impl Sand {
             can_connect_fn: Sand::can_connect,
         }
     }
-    pub fn bake<P: LeEqU32, UV: VertexUV, Seed: Into<u64>, const N: usize>(
-        obj: &WaveObject<FixedI32<P>, UV, Seed, N>,
+    pub fn bake<'a, P: LeEqU32, UV: VertexUV, Seed: Into<u64>, Data>(
+        obj: &WaveObject<FixedI32<P>, UV, Seed, Data>,
         offset: RVec3<FixedI32<P>>,
         meshs: &Assets<WaveMesh<FixedI32<P>, UV>>,
         main_mesh: &mut WaveBuilder<FixedI32<P>, UV>,
-        _neighbours: [&WaveObject<FixedI32<P>, UV, Seed, N>; N],
+        _neighbours: &Data,
         _id: Seed,
     ) -> Result<(), BakeError>
     where

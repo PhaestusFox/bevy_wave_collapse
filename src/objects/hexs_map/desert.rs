@@ -8,18 +8,18 @@ use crate::{
 };
 use bevy::asset::AssetPath;
 use fixed::{types::extra::LeEqU32, FixedI32};
-use rand::{rngs::StdRng, seq::SliceRandom, Rng, SeedableRng};
-use rand_distr::{StandardNormal, Distribution, Binomial, Pert};
+use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand_distr::{Distribution, Pert, StandardGeometric};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, IntoStaticStr};
 pub struct Desert;
 
 use ConnectionType::*;
 impl Desert {
-    pub fn new<P: LeEqU32, UV: VertexUV, Seed: Into<u64>>(
+    pub fn new<'a, P: LeEqU32 + Send + Sync, UV: VertexUV, Seed: Into<u64>, Data>(
         asset_server: &AssetServer,
         path: &str,
-    ) -> WaveObject<FixedI32<P>, UV, Seed, 6>
+    ) -> WaveObject<FixedI32<P>, UV, Seed, Data>
     where
         FixedI32<P>: VertexPosition,
     {
@@ -44,12 +44,12 @@ impl Desert {
             can_connect_fn: Desert::can_connect,
         }
     }
-    pub fn bake<P: LeEqU32, UV: VertexUV, Seed: Into<u64>, const N: usize>(
-        obj: &WaveObject<FixedI32<P>, UV, Seed, N>,
+    pub fn bake<'a, P: LeEqU32 + Send + Sync, UV: VertexUV, Seed: Into<u64>, Data>(
+        obj: &WaveObject<FixedI32<P>, UV, Seed, Data>,
         offset: RVec3<FixedI32<P>>,
         meshs: &Assets<WaveMesh<FixedI32<P>, UV>>,
         main_mesh: &mut WaveBuilder<FixedI32<P>, UV>,
-        _neighbours: [&WaveObject<FixedI32<P>, UV, Seed, N>; N],
+        _neighbours: &'a Data,
         id: Seed,
     ) -> Result<(), BakeError>
     where
@@ -91,36 +91,25 @@ impl Into<Cow<'static, str>> for ConnectionType {
     }
 }
 
-struct Cactus<P: LeEqU32>
+struct Cactus<P: LeEqU32 + Send + Sync>
 where
     FixedI32<P>: VertexPosition,
 {
+    big: bool,
     hight: FixedI32<P>,
     arms: Vec<CactusArm<P>>,
 }
 
-impl<P: LeEqU32> Cactus<P>
+impl<P: LeEqU32 + Send + Sync> Cactus<P>
 where
     FixedI32<P>: VertexPosition,
 {
     fn new(rng: &mut StdRng) -> Cactus<P> {
-        let mut arms = ROTATION::iter().collect::<Vec<_>>();
-        arms.shuffle(rng);
-        let sampler = Pert::new(0.5, 1.2, 0.75).unwrap();
-        let hight = rng.sample::<f32, _>(sampler).abs() / 2. + 0.05;
-        let num_arms = Binomial::new(4, 0.4).unwrap().sample(rng);
+        let sampler = Pert::new(0.25, 0.5, 0.375).unwrap();
+        let hight = rng.sample::<f32, _>(sampler);
         Cactus {
-            arms: if num_arms == 0 {
-                Vec::with_capacity(0)
-            } else {
-                (0..=num_arms)
-                    .map(|_| CactusArm {
-                        slot: arms.pop().expect("Less then 7 Arms"),
-                        hight: FixedI32::<P>::from_num(rng.sample::<f32, _>(Pert::new(0.1, (hight - 0.1).max(0.4), (hight/2.).max(0.15)).unwrap())),
-                        length: FixedI32::<P>::from_num(rng.sample::<f32, _>(Pert::new(0.1, 1.5, 0.66).unwrap())),
-                    })
-                    .collect()
-            },
+            big: rng.gen_bool(0.25),
+            arms: ArmSampler.sample(rng).gen_arm(hight, rng),
             hight: FixedI32::<P>::from_num(hight),
         }
     }
@@ -135,8 +124,15 @@ where
         let stem = meshes
             .get(
                 wave_meshes
-                    .get(&Connection::from(CactusStem))
-                    .ok_or(BakeError::MeshNotSet("CactusStem", "Desert"))?,
+                    .get(&Connection::from(if self.big {
+                        CactusBig
+                    } else {
+                        CactusStem
+                    }))
+                    .ok_or(BakeError::MeshNotSet(
+                        if self.big { "CactusBig" } else { "CactusStem" },
+                        "Desert",
+                    ))?,
             )
             .ok_or(BakeError::MeshNotFound("CactusStem"))?;
         let mut main_stem = stem.clone();
@@ -200,13 +196,34 @@ struct CactusArm<P: LeEqU32>
 where
     FixedI32<P>: VertexPosition,
 {
-    slot: ROTATION,
+    slot: Rotation,
     hight: FixedI32<P>,
     length: FixedI32<P>,
 }
 
+impl<P: LeEqU32 + Send + Sync> CactusArm<P> {
+    fn new(rng: &mut StdRng, max_hight: f32, rotation: Rotation) -> CactusArm<P> {
+        CactusArm {
+            slot: rotation,
+            hight: FixedI32::<P>::from_num(
+                rng.sample::<f32, _>(
+                    Pert::new(
+                        0.1,
+                        (max_hight - 0.1).max(0.2),
+                        (max_hight * 0.25).max(0.15),
+                    )
+                    .unwrap(),
+                ),
+            ),
+            length: FixedI32::<P>::from_num(rng.sample::<f32, _>(
+                Pert::new(0.1, max_hight, (max_hight * 0.66).max(0.15)).unwrap(),
+            )),
+        }
+    }
+}
+
 #[derive(Clone, Copy, EnumIter)]
-enum ROTATION {
+enum Rotation {
     Zero = 0,
     One,
     Two,
@@ -215,8 +232,23 @@ enum ROTATION {
     Five,
 }
 
+impl From<usize> for Rotation {
+    fn from(value: usize) -> Self {
+        match value % 6 {
+            0 => Rotation::Zero,
+            1 => Rotation::One,
+            2 => Rotation::Two,
+            3 => Rotation::Three,
+            4 => Rotation::Fore,
+            5 => Rotation::Five,
+            _ => Rotation::One,
+        }
+    }
+}
+
 #[derive(Clone, Copy, EnumIter)]
 enum CactusShapes {
+    Zero,
     One,
     TwoOp,
     TwoSingle,
@@ -225,8 +257,24 @@ enum CactusShapes {
     ThreeDubble,
 }
 
+struct ArmSampler;
+
+impl Distribution<CactusShapes> for ArmSampler {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CactusShapes {
+        CactusShapes::arm_distribution(StandardGeometric.sample(rng))
+    }
+}
+
+struct CactusSampler;
+
+impl Distribution<CactusShapes> for CactusSampler {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> CactusShapes {
+        CactusShapes::cactus_distribution(StandardGeometric.sample(rng))
+    }
+}
+
 impl CactusShapes {
-    fn gen_cactus<P: LeEqU32>(
+    fn gen_cactus<P: LeEqU32 + Send + Sync>(
         self,
         rng: &mut rand::rngs::StdRng,
     ) -> Vec<(Cactus<P>, RVec3<FixedI32<P>>)>
@@ -234,6 +282,9 @@ impl CactusShapes {
         FixedI32<P>: VertexPosition,
     {
         match self {
+            CactusShapes::Zero => {
+                vec![]
+            }
             CactusShapes::One => {
                 let mut offset = RVec3::new(
                     FixedI32::<P>::from_num(rng.gen_range(0.0..0.36)),
@@ -387,6 +438,64 @@ impl CactusShapes {
                     (Cactus::new(rng), offset_three),
                 ]
             }
+        }
+    }
+
+    fn gen_arm<P: LeEqU32 + Send + Sync>(
+        self,
+        cactus_hight: f32,
+        rng: &mut rand::rngs::StdRng,
+    ) -> Vec<CactusArm<P>> {
+        let rot = rng.gen_range(0..6);
+        match self {
+            CactusShapes::Zero => {
+                vec![]
+            }
+            CactusShapes::One => {
+                vec![CactusArm::new(rng, cactus_hight, Rotation::from(rot))]
+            }
+            CactusShapes::TwoSingle | CactusShapes::TwoOp => {
+                vec![
+                    CactusArm::new(rng, cactus_hight, Rotation::from(rot)),
+                    CactusArm::new(rng, cactus_hight, Rotation::from(rot + 3)),
+                ]
+            }
+            CactusShapes::TwoDubble => {
+                vec![
+                    CactusArm::new(rng, cactus_hight, Rotation::from(rot)),
+                    CactusArm::new(rng, cactus_hight, Rotation::from(rot + 2)),
+                ]
+            }
+            CactusShapes::ThreeSingle | CactusShapes::ThreeDubble => {
+                vec![
+                    CactusArm::new(rng, cactus_hight, Rotation::from(rot)),
+                    CactusArm::new(rng, cactus_hight, Rotation::from(rot + 2)),
+                    CactusArm::new(rng, cactus_hight, Rotation::from(rot + 4)),
+                ]
+            }
+        }
+    }
+
+    fn arm_distribution(value: u64) -> Self {
+        match value {
+            0 => CactusShapes::Zero,
+            1 => CactusShapes::One,
+            2 => CactusShapes::TwoOp,
+            3 => CactusShapes::ThreeDubble,
+            4 => CactusShapes::TwoDubble,
+            5 => CactusShapes::TwoSingle,
+            _ => CactusShapes::ThreeSingle,
+        }
+    }
+    fn cactus_distribution(value: u64) -> Self {
+        match value {
+            5 => CactusShapes::Zero,
+            0 => CactusShapes::One,
+            1 => CactusShapes::TwoOp,
+            2 => CactusShapes::ThreeDubble,
+            3 => CactusShapes::TwoDubble,
+            4 => CactusShapes::TwoSingle,
+            _ => CactusShapes::ThreeSingle,
         }
     }
 }

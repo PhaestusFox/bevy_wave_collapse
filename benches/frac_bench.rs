@@ -264,7 +264,7 @@ pub enum ConnectionType {
     CWF,
     CWW,
 }
-use bevy_wave_collapse::objects::hexs::HexTrig;
+use bevy_wave_collapse::objects::hexs_map::HexTrig;
 
 impl<P: fixed::types::extra::LeEqU32 + 'static + Send + Sync, UV: VertexUV + Hash>
     RiverObject<fixed::FixedI32<P>, UV>
