@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 fixed = "*"
 typenum = "*"
-bevy = {optional = true, version = "0.10"}
+bevy = {optional = true, version = "0.10", default-features = false}
 uuid = {optional = true, version = "1.3.0"}
 az = "*"
 thiserror = "*"
