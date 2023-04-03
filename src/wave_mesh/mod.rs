@@ -6,6 +6,8 @@ use crate::{
     vertex::{Vertex, VertexPosition, VertexUV},
 };
 
+mod wave_palate;
+
 #[cfg(feature = "bevy")]
 pub(crate) mod loader;
 
@@ -44,6 +46,11 @@ impl<P: VertexPosition, UV: VertexUV> WaveMesh<P, UV> {
     pub fn offset(&mut self, offset: RVec3<P>) {
         for vertex in self.vertexs.iter_mut() {
             vertex.position += offset;
+        }
+    }
+    pub fn apply_palate(&mut self, palate: impl wave_palate::WavePalate<UV>) {
+        for vertex in self.vertexs.iter_mut() {
+            palate.apply(&mut vertex.uv);
         }
     }
 }

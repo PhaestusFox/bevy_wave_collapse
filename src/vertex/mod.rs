@@ -28,7 +28,7 @@ pub trait VertexPosition: 'static + VecComponent + PartialEq + Hash + Send + Syn
     fn from_f32(val: f32) -> Self;
 }
 
-pub trait VertexUV: 'static + Copy + PartialEq + Hash + Send + Sync {
+pub trait VertexUV: 'static + Copy + PartialEq + Eq + Hash + Send + Sync {
     fn to_f32x2(&self) -> [f32; 2];
 }
 
