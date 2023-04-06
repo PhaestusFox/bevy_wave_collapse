@@ -53,6 +53,29 @@ impl<P: VertexPosition, UV: VertexUV> WaveMesh<P, UV> {
             palate.apply(&mut vertex.uv);
         }
     }
+    pub fn extract(&self) -> (Vec<[f32; 3]>, Vec<[f32; 2]>, Vec<u32>) {
+        let mut vertexs = Vec::with_capacity(self.vertexs.len());
+        let mut uvs = Vec::with_capacity(self.vertexs.len());
+        for Vertex { position, uv } in self.vertexs.iter() {
+            vertexs.push(position.to_f32x3());
+            uvs.push(uv.to_f32x2());
+        }
+        (vertexs, uvs, self.indices.clone())
+    }
+
+    #[cfg(feature = "with_bevy")]
+    pub fn extract_mesh(
+        &self,
+        topology: bevy::render::render_resource::PrimitiveTopology,
+    ) -> bevy::prelude::Mesh {
+        use bevy::prelude::Mesh;
+        let mut mesh = Mesh::new(topology);
+        let (vertexs, uvs, indices) = self.extract();
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertexs);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+        mesh.set_indices(Some(bevy::render::mesh::Indices::U32(indices)));
+        mesh
+    }
 }
 
 impl<P: VertexPosition + std::str::FromStr, UV: VertexUV + std::str::FromStr + Default> WaveMesh<P, UV> {
