@@ -55,6 +55,11 @@ impl std::fmt::Debug for Connection {
 
 pub struct WaveObjects<'a, P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize>(pub [&'a WaveObject<P, UV, Seed, Self>; N]);
 
+#[cfg(feature="bevy")]
+impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> bevy::reflect::TypeUuid for WaveObject<P, UV, Seed, DATA> {
+    const TYPE_UUID: uuid::Uuid = uuid::uuid!("50baca88-21e3-47e8-9a4e-05fe89565e21");
+}
+
 pub struct WaveObject<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> {
     pub meshes: HashMap<Connection, Handle<WaveMesh<P, UV>>>,
     pub build_fn: fn(
