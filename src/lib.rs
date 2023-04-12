@@ -16,4 +16,5 @@ pub mod prelude {
     pub use super::wave_mesh::WaveBuilder;
     pub use super::wave_mesh::WaveMesh;
     pub use super::errors::{BakeError, ParseObjError};
+    pub use super::objects::Connection;
 }
