@@ -20,11 +20,7 @@ impl<T: 'static + VertexPosition + Send + Sync + FromStr, UV: 'static + VertexUV
         Box::pin(async move {
             let str = String::from_utf8_lossy(bytes);
             for (name, mesh) in WaveMesh::<T, UV>::from_obj_str(&str)? {
-                if !name.to_lowercase().starts_with("core") {
-                    load_context.set_labeled_asset(&name, LoadedAsset::new(mesh));
-                } else {
-                    load_context.set_default_asset(LoadedAsset::new(mesh));
-                }
+                load_context.set_labeled_asset(&name, LoadedAsset::new(mesh));
             }
             Ok(())
         })
