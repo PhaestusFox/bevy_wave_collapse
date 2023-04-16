@@ -225,7 +225,7 @@ impl<P: VertexPosition + std::str::FromStr, UV: VertexUV + std::str::FromStr + D
                         first = false;
                     }
                     current_mesh = WaveMesh::new();
-                    current_name = words.next().ok_or(ParseObjError::NoName(num))?.to_string();
+                    current_name = words.next().ok_or(ParseObjError::NoName(num))?.split(".").next().expect("Split always yelds at least once").to_string();
                     vertex_map.clear();
                 }
                 w => {
