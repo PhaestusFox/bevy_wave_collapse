@@ -63,9 +63,9 @@ impl RiverObject {
             meshs
                 .get(
                     obj.get(Core)
-                        .ok_or(BakeError::MeshNotSet("Core", "River"))?,
+                        .ok_or(BakeError::MeshNotSet{ mesh: "Core", obj: "River"})?,
                 )
-                .ok_or(BakeError::MeshNotFound("River Core"))?,
+                .ok_or(BakeError::MeshNotFound{ mesh: "River Core", obj: "River"})?,
         )?;
         let water_connection = Connection::new("Water");
         let sand_connection = Connection::new("Sand");
@@ -81,17 +81,17 @@ impl RiverObject {
             let stright = match has_connection[i] {
                 Water => obj
                     .get(SW)
-                    .ok_or(BakeError::MeshNotSet("Stright Water", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Stright Water", obj: "River"})?,
                 Flat => obj
                     .get(SF)
-                    .ok_or(BakeError::MeshNotSet("Stright Flat", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Stright Flat", obj: "River"})?,
                 Sand => obj
                     .get(SS)
-                    .ok_or(BakeError::MeshNotSet("Stright Sand", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Stright Sand", obj: "River"})?,
             };
             let mut stright = meshs
                 .get(stright)
-                .ok_or(BakeError::MeshNotFound("Stright"))?
+                .ok_or(BakeError::MeshNotFound{ mesh: "Stright", obj: "River"})?
                 .clone();
             let cos = FixedI32::<P>::ROTATIONS_COS[i];
             let sin = FixedI32::<P>::ROTATIONS_SIN[i];
@@ -100,35 +100,35 @@ impl RiverObject {
             let corner = match (has_connection[i], has_connection[(i + 1) % 6]) {
                 (Water, Water) => obj
                     .get(CWW)
-                    .ok_or(BakeError::MeshNotSet("Corner Water Water", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Water Water", obj: "River"})?,
                 (Water, Flat) => obj
                     .get(CWF)
-                    .ok_or(BakeError::MeshNotSet("Corner Water Flat", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Water Flat", obj: "River"})?,
                 (Flat, Water) => obj
                     .get(CFW)
-                    .ok_or(BakeError::MeshNotSet("Corner Flat Water", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Flat Water", obj: "River"})?,
                 (Flat, Flat) => obj
                     .get(CFF)
-                    .ok_or(BakeError::MeshNotSet("Corner Flat Flat", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Flat Flat", obj: "River"})?,
                 (Flat, Sand) => obj
                     .get(CFS)
-                    .ok_or(BakeError::MeshNotSet("Corner Flat Sand", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Flat Sand", obj: "River"})?,
                 (Water, Sand) => obj
                     .get(CWS)
-                    .ok_or(BakeError::MeshNotSet("Corner Water Sand", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Water Sand", obj: "River"})?,
                 (Sand, Flat) => obj
                     .get(CSF)
-                    .ok_or(BakeError::MeshNotSet("Corner Sand Flat", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Sand Flat", obj: "River"})?,
                 (Sand, Water) => obj
                     .get(CSW)
-                    .ok_or(BakeError::MeshNotSet("Corner Sand Water", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Sand Water", obj: "River"})?,
                 (Sand, Sand) => obj
                     .get(CSS)
-                    .ok_or(BakeError::MeshNotSet("Corner Sand Sand", "River"))?,
+                    .ok_or(BakeError::MeshNotSet{ mesh: "Corner Sand Sand", obj: "River"})?,
             };
             let mut corner = meshs
                 .get(corner)
-                .ok_or(BakeError::MeshNotFound("Stright"))?
+                .ok_or(BakeError::MeshNotFound{ mesh: "Stright", obj: "River"})?
                 .clone();
             let cos = FixedI32::<P>::ROTATIONS_COS[i];
             let sin = FixedI32::<P>::ROTATIONS_SIN[i];

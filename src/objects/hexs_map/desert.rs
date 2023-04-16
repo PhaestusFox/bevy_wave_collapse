@@ -61,9 +61,9 @@ impl Desert {
             meshs
                 .get(
                     obj.get("Core")
-                        .ok_or(BakeError::MeshNotSet("Core", "Sand"))?,
+                        .ok_or(BakeError::MeshNotSet{mesh: "Core",obj: "Sand"})?,
                 )
-                .ok_or(BakeError::MeshNotFound("Sand Core"))?,
+                .ok_or(BakeError::MeshNotFound{mesh: "Core", obj: "Sand"})?,
         )?;
         for (cactus, cactus_offset) in CactusShapes::ThreeDubble.gen_cactus(&mut rng) {
             cactus.build(offset + cactus_offset, meshs, main_mesh, &obj.meshes)?;
@@ -129,12 +129,12 @@ where
                     } else {
                         CactusStem
                     }))
-                    .ok_or(BakeError::MeshNotSet(
-                        if self.big { "CactusBig" } else { "CactusStem" },
-                        "Desert",
-                    ))?,
+                    .ok_or(BakeError::MeshNotSet{
+                        mesh: if self.big { "CactusBig" } else { "CactusStem" },
+                        obj: "Desert",
+    })?,
             )
-            .ok_or(BakeError::MeshNotFound("CactusStem"))?;
+            .ok_or(BakeError::MeshNotFound{mesh: "CactusStem", obj: "Desert"})?;
         let mut main_stem = stem.clone();
         main_stem.scale_y(self.hight);
         main_mesh.bake(offset, &main_stem)?;
@@ -142,9 +142,9 @@ where
             .get(
                 wave_meshes
                     .get(&Connection::from(CactusTop))
-                    .ok_or(BakeError::MeshNotSet("CactusTop", "Desert"))?,
+                    .ok_or(BakeError::MeshNotSet{mesh: "CactusTop", obj: "Desert"})?,
             )
-            .ok_or(BakeError::MeshNotFound("CactusTop"))?;
+            .ok_or(BakeError::MeshNotFound{mesh: "CactusTop", obj: "Desert"})?;
         main_mesh.bake(
             offset
                 + RVec3 {
@@ -171,9 +171,9 @@ where
                 .get(
                     wave_meshes
                         .get(&Connection::from(CactusBranch))
-                        .ok_or(BakeError::MeshNotSet("CactusBranch", "Desert"))?,
+                        .ok_or(BakeError::MeshNotSet{mesh: "CactusBranch", obj: "Desert"})?,
                 )
-                .ok_or(BakeError::MeshNotFound("CactusBranch"))?
+                .ok_or(BakeError::MeshNotFound{mesh: "CactusBranch", obj: "Desert"})?
                 .clone();
             branch.offset(RVec3 {
                 y: arm.hight,
