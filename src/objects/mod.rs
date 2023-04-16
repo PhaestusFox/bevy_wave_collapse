@@ -53,43 +53,46 @@ impl std::fmt::Debug for Connection {
     }
 }
 
-pub struct WaveObjects<'a, P: VertexPosition, UV: VertexUV, Seed: Into<u64>, const N: usize>(pub [&'a WaveObject<P, UV, Seed, Self>; N]);
+pub struct WaveObjects<'a, P: VertexPosition, UV: VertexUV, const N: usize>(pub [&'a WaveObject<P, UV, Self>; N]);
+
+pub struct SeededWaveObjects<'a, P: VertexPosition, UV: VertexUV, const N: usize> {
+    pub neighbours: [&'a WaveObject<P, UV, Self>; N],
+    pub seed: u64,
+}
 
 #[cfg(feature="bevy")]
-impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> bevy::reflect::TypeUuid for WaveObject<P, UV, Seed, DATA> {
+impl<P: VertexPosition, UV: VertexUV, DATA> bevy::reflect::TypeUuid for WaveObject<P, UV, DATA> {
     const TYPE_UUID: uuid::Uuid = uuid::uuid!("50baca88-21e3-47e8-9a4e-05fe89565e21");
 }
 
-pub struct WaveObject<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> {
+pub struct WaveObject<P: VertexPosition, UV: VertexUV, DATA> {
     pub meshes: HashMap<Connection, Handle<WaveMesh<P, UV>>>,
     pub build_fn: fn(
-        &WaveObject<P, UV, Seed, DATA>,
+        &WaveObject<P, UV, DATA>,
         RVec3<P>,
         &Assets<WaveMesh<P, UV>>,
         &mut WaveBuilder<P, UV>,
         &DATA,
-        Seed,
     ) -> Result<(), BakeError>,
     pub can_connect_fn: fn(Connection) -> bool,
 }
 
-impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> WaveObject<P, UV, Seed, DATA> {
+impl<P: VertexPosition, UV: VertexUV, DATA> WaveObject<P, UV, DATA> {
     pub fn build(
         &self,
         offset: RVec3<P>,
         meshs: &Assets<WaveMesh<P, UV>>,
         main_mesh: &mut WaveBuilder<P, UV>,
         neighbours: &DATA,
-        seed: Seed,
     ) -> Result<(), BakeError> {
-        (self.build_fn)(self, offset, meshs, main_mesh, neighbours, seed)
+        (self.build_fn)(self, offset, meshs, main_mesh, neighbours)
     }
     pub fn can_connect(&self, connection: Connection) -> bool {
         (self.can_connect_fn)(connection)
     }
 }
 
-impl<P: VertexPosition, UV: VertexUV, Seed: Into<u64>, DATA> WaveObject<P, UV, Seed, DATA> {
+impl<P: VertexPosition, UV: VertexUV, DATA> WaveObject<P, UV, DATA> {
     pub fn get<T: Into<&'static str>>(&self, connection: T) -> Option<&Handle<WaveMesh<P, UV>>>
     where
         Connection: From<T>,

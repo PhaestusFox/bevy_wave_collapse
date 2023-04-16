@@ -16,10 +16,10 @@ pub struct Desert;
 
 use ConnectionType::*;
 impl Desert {
-    pub fn new<'a, P: LeEqU32 + Send + Sync, UV: VertexUV, Seed: Into<u64>, Data>(
+    pub fn new<'a, P: LeEqU32 + Send + Sync, UV: VertexUV>(
         asset_server: &AssetServer,
         path: &str,
-    ) -> WaveObject<FixedI32<P>, UV, Seed, Data>
+    ) -> WaveObject<FixedI32<P>, UV, SeededWaveObjects<'a, FixedI32<P>, UV, 6>>
     where
         FixedI32<P>: VertexPosition,
     {
@@ -44,18 +44,17 @@ impl Desert {
             can_connect_fn: Desert::can_connect,
         }
     }
-    pub fn bake<'a, P: LeEqU32 + Send + Sync, UV: VertexUV, Seed: Into<u64>, Data>(
-        obj: &WaveObject<FixedI32<P>, UV, Seed, Data>,
+    pub fn bake<'a, P: LeEqU32 + Send + Sync, UV: VertexUV>(
+        obj: &WaveObject<FixedI32<P>, UV, SeededWaveObjects<'a, FixedI32<P>, UV, 6>>,
         offset: RVec3<FixedI32<P>>,
         meshs: &Assets<WaveMesh<FixedI32<P>, UV>>,
         main_mesh: &mut WaveBuilder<FixedI32<P>, UV>,
-        _neighbours: &'a Data,
-        id: Seed,
+        neighbours: &SeededWaveObjects<'a, FixedI32<P>, UV, 6>,
     ) -> Result<(), BakeError>
     where
         FixedI32<P>: VertexPosition,
     {
-        let mut rng = rand::rngs::StdRng::seed_from_u64(id.into());
+        let mut rng = rand::rngs::StdRng::seed_from_u64(neighbours.seed);
         main_mesh.bake(
             offset,
             meshs

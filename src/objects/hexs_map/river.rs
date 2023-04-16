@@ -15,10 +15,10 @@ pub struct RiverObject;
 use bevy::asset::AssetPath;
 use fixed::{types::extra::LeEqU32, FixedI32};
 impl RiverObject {
-    pub fn new<'a, P: LeEqU32, UV: VertexUV, Seed: Into<u64>>(
+    pub fn new<'a, P: LeEqU32, UV: VertexUV>(
         asset_server: &AssetServer,
         path: &str,
-    ) -> WaveObject<FixedI32<P>, UV, Seed, WaveObjects<'a, FixedI32<P>, UV, Seed, 6>>
+    ) -> WaveObject<FixedI32<P>, UV, SeededWaveObjects<'a, FixedI32<P>, UV, 6>>
     where
         FixedI32<P>: VertexPosition,
     {
@@ -45,13 +45,12 @@ impl RiverObject {
             build_fn: RiverObject::bake,
         }
     }
-    pub fn bake<'a, P: LeEqU32, UV: VertexUV, Seed: Into<u64>>(
-        obj: &WaveObject<FixedI32<P>, UV, Seed, WaveObjects<'a, FixedI32<P>, UV, Seed, 6>>,
+    pub fn bake<'a, P: LeEqU32, UV: VertexUV>(
+        obj: &WaveObject<FixedI32<P>, UV, SeededWaveObjects<'a, FixedI32<P>, UV, 6>>,
         offset: RVec3<FixedI32<P>>,
         meshs: &Assets<WaveMesh<FixedI32<P>, UV>>,
         main_mesh: &mut WaveBuilder<FixedI32<P>, UV>,
-        neighbours: &WaveObjects<'a, FixedI32<P>, UV, Seed, 6>,
-        _id: Seed,
+        data: &SeededWaveObjects<'a, FixedI32<P>, UV, 6>,
     ) -> Result<(), BakeError>
     where
         FixedI32<P>: VertexPosition,
@@ -71,9 +70,9 @@ impl RiverObject {
         let sand_connection = Connection::new("Sand");
         let mut has_connection = [Flat; 6];
         for i in 0..6 {
-            if neighbours.0[i].can_connect(water_connection.clone()) {
+            if data.neighbours[i].can_connect(water_connection.clone()) {
                 has_connection[i] = Water;
-            } else if neighbours.0[i].can_connect(sand_connection.clone()) {
+            } else if data.neighbours[i].can_connect(sand_connection.clone()) {
                 has_connection[i] = Sand;
             }
         }
