@@ -24,19 +24,9 @@ impl Desert {
         FixedI32<P>: VertexPosition,
     {
         let mut meshes = HashMap::new();
-        meshes.insert(Connection::new("Core"), asset_server.load(path));
         for connection in ConnectionType::iter() {
-            match connection {
-                Core => {
-                    let path = AssetPath::new(path.into(), None);
-                    meshes.insert(Connection::from(Core), asset_server.load(path));
-                }
-                not_core => {
-                    let name: &'static str = not_core.into();
-                    let path = AssetPath::new(path.into(), Some(format!("{}", name)));
-                    meshes.insert(Connection::from(not_core), asset_server.load(path));
-                }
-            }
+            let path = AssetPath::new(path.into(), Some(format!("{:?}", connection)));
+            meshes.insert(Connection::from(connection), asset_server.load(path));
         }
         WaveObject {
             meshes,
@@ -81,13 +71,6 @@ pub enum ConnectionType {
     CactusTop,
     CactusStem,
     CactusBig,
-}
-
-impl Into<Cow<'static, str>> for ConnectionType {
-    fn into(self) -> Cow<'static, str> {
-        let str: &'static str = self.into();
-        Cow::Borrowed(str)
-    }
 }
 
 struct Cactus<P: LeEqU32 + Send + Sync>

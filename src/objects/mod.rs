@@ -17,9 +17,10 @@ pub struct Connection {
 impl Connection {
     pub fn new<T: Into<Cow<'static, str>> + Hash>(id: T) -> Self {
         let mut hasher = bevy::utils::AHasher::default();
-        id.hash(&mut hasher);
+        let name: Cow<'static, str> = id.into();
+        name.hash(&mut hasher);
         Connection {
-            name: id.into(),
+            name,
             hash: hasher.finish(),
         }
     }
@@ -43,7 +44,7 @@ impl PartialEq for Connection {
             // Makes the common case of two strings not been equal very fast
             return false;
         }
-        self.name.eq(&other.name)
+        self.name.eq(other.name.as_ref())
     }
 }
 
@@ -101,8 +102,10 @@ impl<P: VertexPosition, UV: VertexUV, DATA> WaveObject<P, UV, DATA> {
     }
 }
 
-impl<T: Into<Cow<'static, str>> + Hash> From<T> for Connection {
-    fn from(value: T) -> Self {
-        Connection::new(value)
+impl<T: Into<&'static str> + Hash> From<T> for Connection {
+    fn from(val: T) -> Self {
+        let name: &'static str = val.into();
+        let name = Cow::Borrowed(name);
+        Connection::new(name)
     }
 }

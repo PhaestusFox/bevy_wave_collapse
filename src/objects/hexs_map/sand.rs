@@ -42,7 +42,7 @@ impl Sand {
                     obj.get("Core")
                         .ok_or(BakeError::MeshNotSet{ mesh: "Core", obj: "Sand"})?,
                 )
-                .ok_or(BakeError::MeshNotFound{ mesh: "Sand Core", obj: "Sand"})?,
+                .ok_or(BakeError::MeshNotFound{ mesh: "Core", obj: "Sand"})?,
         )
     }
     pub fn can_connect(connection: Connection) -> bool {

@@ -22,22 +22,12 @@ impl RiverObject {
     where
         FixedI32<P>: VertexPosition,
     {
-        use ConnectionType::*;
         let mut meshes = HashMap::new();
         let base_path: PathBuf = path.into();
 
         for connection in ConnectionType::iter() {
-            match connection {
-                Core => {
-                    let path = AssetPath::new(base_path.clone(), None);
-                    meshes.insert(Connection::from(Core), asset_server.load(path));
-                }
-                not_core => {
-                    let name: &'static str = not_core.into();
-                    let path = AssetPath::new(base_path.clone(), Some(format!("{}", name)));
-                    meshes.insert(Connection::from(not_core), asset_server.load(path));
-                }
-            }
+            let path = AssetPath::new(base_path.clone(), Some(format!("{:?}", connection)));
+            meshes.insert(Connection::from(connection), asset_server.load(path));
         }
         WaveObject {
             meshes,
@@ -163,11 +153,4 @@ enum HasConnection {
     Flat,
     Water,
     Sand,
-}
-
-impl Into<Cow<'static, str>> for ConnectionType {
-    fn into(self) -> Cow<'static, str> {
-        let str: &'static str = self.into();
-        Cow::Borrowed(str)
-    }
 }
