@@ -4,7 +4,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum BakeError {
-    #[error("Mesh for {mesh} for {obj} not found in Assets")]
+    #[error("Mesh {mesh} for {obj} not found in Assets")]
     MeshNotFound{mesh: &'static str, obj: &'static str },
     #[error("Mesh {mesh} not set for {obj}")]
     MeshNotSet{mesh: &'static str, obj: &'static str },
