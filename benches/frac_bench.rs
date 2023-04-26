@@ -5,9 +5,63 @@ use bevy_wave_collapse::{
 use criterion::{criterion_group, criterion_main, Criterion};
 use fixed::types::extra::LeEqU32;
 use fixed::FixedI32;
-use hex_plugin::{components::ids::HexRangeIterator, prelude::*};
 use std::collections::HashMap;
 use typenum::*;
+
+struct HexId {q: i32, r: i32}
+
+const SQRT_3DIV2: f32 = 0.86602540378443864676372317075294;
+
+impl HexId {
+    #[inline(always)]
+    pub fn x(&self) -> f32 {
+        (self.q as f32 * 0.5 + self.r as f32) * SQRT_3DIV2
+    }
+    #[inline(always)]
+    pub fn z(&self) -> f32 {
+        0.75 * self.q as f32
+    }
+}
+
+struct HexRangeIterator {
+    q: std::ops::RangeInclusive<i32>,
+    current_q: i32,
+    r: std::ops::RangeInclusive<i32>,
+    size: i32,
+}
+
+impl HexRangeIterator {
+    pub fn new(range: u32) -> HexRangeIterator {
+        let range = range as i32;
+        HexRangeIterator {
+            q: -range + 1..=range,
+            current_q: -range,
+            r: 0..=range,
+            size: range,
+        }
+    }
+}
+
+impl Iterator for HexRangeIterator {
+    type Item = HexId;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.r.next() {
+            None => match self.q.next() {
+                Some(q) => {
+                    self.current_q = q;
+                    self.r = (-self.size).max(-q - self.size)..=(self.size).min(-q + self.size);
+                    if let Some(r) = self.r.next() {
+                        Some(HexId {q: self.current_q, r})
+                    } else {
+                        None
+                    }
+                }
+                None => None,
+            },
+            Some(r) => Some(HexId{q: self.current_q, r}),
+        }
+    }
+}
 
 fn load_test_wavemesh<P: LeEqU32 + 'static + Send + Sync>() -> RiverObject<FixedI32<P>, u8> {
     let meshes = bevy_wave_collapse::prelude::WaveMesh::<FixedI32<P>, u8>::from_obj_str(
@@ -221,7 +275,7 @@ fn frac_test(b: &mut Criterion) {
             );
         });
     });
-    let gen = HexRangeIterator::<ChunkId>::new(5).count();
+    let gen = HexRangeIterator::new(5).count();
     println!("Generated {} Hexs", gen);
     println!("Max vertexes = {}", gen * 66);
     for i in (6..30).step_by(2) {
@@ -236,7 +290,7 @@ fn frac_build<P: LeEqU32 + 'static + Send + Sync>(
     mesh: &RiverObject<FixedI32<P>, u8>,
     is_water: [bool; 6],
 ) -> usize {
-    for id in HexRangeIterator::<CellId>::new(5).collect::<Vec<_>>() {
+    for id in HexRangeIterator::new(5).collect::<Vec<_>>() {
         let offset = RVec3::new(
             FixedI32::<P>::from_f32(id.x()),
             FixedI32::<P>::from_f32(0.0),
