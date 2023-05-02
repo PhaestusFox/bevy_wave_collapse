@@ -14,6 +14,14 @@ impl<UV: VertexUV> WavePalate<UV> for HashMap<UV, UV> {
     }
 }
 
+impl<UV: VertexUV> WavePalate<UV> for &HashMap<UV, UV> {
+    fn apply(&self, val: &mut UV) {
+        if let Some(uv) = self.get(val) {
+            *val = *uv;
+        }
+    }
+}
+
 impl<UV: VertexUV + Into<usize>> WavePalate<UV> for &[UV]  {
     fn apply(&self, val: &mut UV) {
         if let Some(uv) = self.get::<usize>((*val).into()) {
